@@ -3,10 +3,10 @@
 /* The following two functions are defined in util.c */
 
 /* finds the highest 1 bit, and returns its position, else 0xFFFFFFFF */
-unsigned int uint_log2(word w); 
+unsigned int uint_log2(word w);
 
 /* return random int from 0..x-1 */
-int randomint( int x );
+int randomint(int x);
 
 /*
   This function allows the lfu information to be displayed
@@ -16,13 +16,13 @@ int randomint( int x );
 
   returns a string representation of the lfu information
  */
-char* lfu_to_string(int assoc_index, int block_index)
+char *lfu_to_string(int assoc_index, int block_index)
 {
-  /* Buffer to print lfu information -- increase size as needed. */
-  static char buffer[9];
-  sprintf(buffer, "%u", cache[assoc_index].block[block_index].accessCount);
+    /* Buffer to print lfu information -- increase size as needed. */
+    static char buffer[9];
+    sprintf(buffer, "%u", cache[assoc_index].block[block_index].accessCount);
 
-  return buffer;
+    return buffer;
 }
 
 /*
@@ -33,13 +33,13 @@ char* lfu_to_string(int assoc_index, int block_index)
 
   returns a string representation of the lru information
  */
-char* lru_to_string(int assoc_index, int block_index)
+char *lru_to_string(int assoc_index, int block_index)
 {
-  /* Buffer to print lru information -- increase size as needed. */
-  static char buffer[9];
-  sprintf(buffer, "%u", cache[assoc_index].block[block_index].lru.value);
+    /* Buffer to print lru information -- increase size as needed. */
+    static char buffer[9];
+    sprintf(buffer, "%u", cache[assoc_index].block[block_index].lru.value);
 
-  return buffer;
+    return buffer;
 }
 
 /*
@@ -51,7 +51,7 @@ char* lru_to_string(int assoc_index, int block_index)
 */
 void init_lfu(int assoc_index, int block_index)
 {
-  cache[assoc_index].block[block_index].accessCount = 0;
+    cache[assoc_index].block[block_index].accessCount = 0;
 }
 
 /*
@@ -63,7 +63,7 @@ void init_lfu(int assoc_index, int block_index)
 */
 void init_lru(int assoc_index, int block_index)
 {
-  cache[assoc_index].block[block_index].lru.value = 0;
+    cache[assoc_index].block[block_index].lru.value = 0;
 }
 
 /*
@@ -78,17 +78,18 @@ void init_lru(int assoc_index, int block_index)
               if we == WRITE, then data used to
               update Cache/DRAM
 */
-void accessMemory(address addr, word* data, WriteEnable we)
+void accessMemory(address addr, word *data, WriteEnable we)
 {
-  /* Declare variables here */
+    /* Declare variables here */
 
-  /* handle the case of no cache at all - leave this in */
-  if(assoc == 0) {
-    accessDRAM(addr, (byte*)data, WORD_SIZE, we);
-    return;
-  }
+    /* handle the case of no cache at all - leave this in */
+    if (assoc == 0)
+    {
+        accessDRAM(addr, (byte *)data, WORD_SIZE, we);
+        return;
+    }
 
-  /*
+    /*
   You need to read/write between memory (via the accessDRAM() function) and
   the cache (via the cache[] global structure defined in tips.h)
 
@@ -115,13 +116,12 @@ void accessMemory(address addr, word* data, WriteEnable we)
   functions can be found in tips.h
   */
 
-  /* Start adding code here */
+    /* Start adding code here */
 
-
-  /* This call to accessDRAM occurs when you modify any of the
+    /* This call to accessDRAM occurs when you modify any of the
      cache parameters. It is provided as a stop gap solution.
      At some point, ONCE YOU HAVE MORE OF YOUR CACHELOGIC IN PLACE,
      THIS LINE SHOULD BE REMOVED.
   */
-  accessDRAM(addr, (byte*)data, WORD_SIZE, we);
+    accessDRAM(addr, (byte *)data, WORD_SIZE, we);
 }
