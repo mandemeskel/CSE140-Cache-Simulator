@@ -66,6 +66,45 @@ void init_lru(int assoc_index, int block_index)
     cache[assoc_index].block[block_index].lru.value = 0;
 }
 
+// functions to find bits to breakdown cache addresses
+int getOffsetBits();
+int getIndexBits();
+int getTagBits();
+
+// calculates and returns the offset from this address
+int getOffset(address);
+
+// calculates and returns the index from this address
+int getIndex(address);
+
+// calculates and returns the tag from this address
+int getTag(address);
+
+// returns the cache set associated with this address
+cacheSet * getCacheSet(address);
+
+// returns the cache block associated with this address
+cacheBlock * getCacheBlock(address, cacheSet *);
+
+// returns the word in this block that the address is saved in or null for miss
+word * getWord(address, cacheBlock *);
+
+// handles cache misses by pulling a block from memory and adding it to the passed cache set
+int handleMiss(address, cacheSet *);
+
+// returns a block that we can write data to, find block using LRU or random cache replacement, if no empty block was found in the cache set
+cacheBlock * getWriteableBlock(cacheSet *);
+
+// commits block to memory at given address
+int writeBlockToMemory(address, cacheBlock *);
+
+// performs a read on this address and returns the word that was found
+word * cacheRead(address);
+
+// performs a write on this address
+void cacheWrite(address, word *);
+
+
 /*
   This is the primary function you are filling out,
   You are free to add helper functions if you need them
