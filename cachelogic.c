@@ -117,6 +117,21 @@ void runBaseTests();
 // runs tests for getCacheSet(), getCacheBlock(), and getWord()
 void runCacheTests();
 
+// tests getWriteableBlock()
+void testGetWriteableBlock();
+
+// tests writeBlockToMemory()
+void testWriteBlockToMemory();
+
+// tests handleMiss()
+void testHandleMiss();
+
+// tests cacheRead()
+void testCacheRead();
+
+// test cacheWrite()
+void testCacheWrite();
+
 // sets cache parameters for tests
 void setCacheParams(int words_in_block, int num_sets, int blocks_in_set);
 
@@ -288,8 +303,67 @@ void runTests() {
 
     runBaseTests();
     runCacheTests();
+    testGetWriteableBlock();
+    testWriteBlockToMemory();
+    testHandleMiss();
+    testCacheRead();
+    testCacheWrite();
 
     printf("Tests finished \n");
+}
+
+// tests getWriteableBlock()
+void testGetWriteableBlock() {
+    printf("Running getWriteableBlock() tests \n");
+    int passed_tests = 0;
+
+
+
+    printf("Passed %d/100000 tests.\n", passed_tests);
+}
+
+// tests writeBlockToMemory()
+void testWriteBlockToMemory() {
+    printf("Running writeBlockToMemory() tests \n");
+    int passed_tests = 0;
+
+
+
+    printf("Passed %d/100000 tests.\n", passed_tests);
+
+}
+
+// tests handleMiss()
+void testHandleMiss() {
+    printf("Running handleMiss() tests \n");
+    int passed_tests = 0;
+
+
+
+    printf("Passed %d/100000 tests.\n", passed_tests);
+
+}
+
+// tests cacheRead()
+void testCacheRead() {
+    printf("Running cacheRead() tests \n");
+    int passed_tests = 0;
+
+
+
+    printf("Passed %d/100000 tests.\n", passed_tests);
+
+}
+
+// test cacheWrite()
+void testCacheWrite() {
+    printf("Running cacheWrite() tests \n");
+    int passed_tests = 0;
+
+
+
+    printf("Passed %d/100000 tests.\n", passed_tests);
+
 }
 
 // TODO: add test to check that getWord() returns the correct sized word
