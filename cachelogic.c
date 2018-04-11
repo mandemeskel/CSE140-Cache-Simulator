@@ -213,24 +213,24 @@ int getIndex(address addrss) {
 
 // calculates and returns the tag from this address
 int getTag(address addrss) {
-    return addrss >> (getOffsetBits(addrss) + getIndexBits(addrss));
+    return addrss >> (getOffsetBits() + getIndexBits());
 }
 
 // returns the cache set associated with this address
 cacheSet * getCacheSet(address addrss) {
-    cacheSet * set;
+    cacheSet * set = NULL;
     return set;
 }
 
 // returns the cache block associated with this address
 cacheBlock * getCacheBlock(address addrss, cacheSet * set) {
-    cacheBlock * block;
+    cacheBlock * block = NULL;
     return block;
 }
 
 // returns the word in this block that the address is saved in or null for miss
 word * getWord(address addrss, cacheBlock * block) {
-    word * data;
+    word * data = NULL;
     return data;
 }
 
@@ -241,7 +241,7 @@ int handleMiss(address addrss, cacheSet * set) {
 
 // returns a block that we can write data to, find block using LRU or random cache replacement, if no empty block was found in the cache set
 cacheBlock * getWriteableBlock(cacheSet * set) {
-    cacheBlock * block;
+    cacheBlock * block = NULL;
     return block;
 }
 
@@ -252,7 +252,7 @@ int writeBlockToMemory(address addrss, cacheBlock * block) {
 
 // performs a read on this address and returns the word that was found
 word * cacheRead(address addrss) {
-    word * data;
+    word * data = NULL;
     return data;
 }
 
@@ -292,15 +292,15 @@ void runBaseTests() {
     int index = getIndex(ad);
     int tag = getTag(ad);
 
-    int passed_test = 0;
-    passed_test += assertTrue(expected_offsetbits, offsetbits, "testing getOffsetBits()..") ? 1 : 0;
-    passed_test += assertTrue(expected_indexbits, indexbits, "testing getIndexBits()..") ? 1 : 0;
+    int passed_tests = 0;
+    passed_tests += assertTrue(expected_offsetbits, offsetbits, "testing getOffsetBits()..");
+    passed_tests += assertTrue(expected_indexbits, indexbits, "testing getIndexBits()..");
 
-    passed_test += assertTrue(expected_offset, offset, "testing getOffset()..") ? 1 : 0;
-    passed_test += assertTrue(expected_index, index, "testing getindex()..") ? 1 : 0;
-    passed_test += assertTrue(expected_tag, tag, "testing getTag()..") ? 1 : 0;
+    passed_tests += assertTrue(expected_offset, offset, "testing getOffset()..");
+    passed_tests += assertTrue(expected_index, index, "testing getindex()..");
+    passed_tests += assertTrue(expected_tag, tag, "testing getTag()..");
 
-    printf("Passed %d/5 tests.\n");
+    printf("Passed %d/5 tests.\n", passed_tests);
 
     // reset cache params
     setCacheParams(0, 0, 0);
@@ -316,7 +316,7 @@ void setCacheParams(int words_in_block, int num_sets, int blocks_in_set) {
 // checks if the test is true, prints msg and value
 int assertTrue(int expected, int actual, char * test_msg) {
     int test = expected == actual;
-    printf(test_msg);
+    printf("%s", test_msg);
     printf("\n");
 
     if(test == 0)
