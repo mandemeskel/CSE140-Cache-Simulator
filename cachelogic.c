@@ -104,6 +104,17 @@ word * cacheRead(address);
 // performs a write on this address
 void cacheWrite(address, word *);
 
+// sanity check, runs unit tests on helper functions
+void runTests();
+
+// runs tests on functions to get bits, offset, tag, and index
+void runBaseTests();
+
+// sets cache parameters for tests
+void setCacheParams(int words_in_block, int num_sets, int blocks_in_set);
+
+// checks if the test is true, prints msg and value
+int assertTrue(int expected, int actual, char * test_msg);
 
 /*
   This is the primary function you are filling out,
@@ -119,6 +130,9 @@ void cacheWrite(address, word *);
 */
 void accessMemory(address addr, word *data, WriteEnable we)
 {
+    /* Nowhere else to put tests */
+    runTests();
+
     /* Declare variables here */
 
     /* handle the case of no cache at all - leave this in */
@@ -169,14 +183,14 @@ void accessMemory(address addr, word *data, WriteEnable we)
  *  Number bits of the block offset
  **/
 int getOffsetBits() {
-    return 0;
+    return uint_log2(block_size);
 }
 
 /**
  *  Number bits of the set index
  **/
 int getIndexBits() {
-    return 0;
+    return uint_log2(set_count);
 }
 
 /**
@@ -188,17 +202,18 @@ int getTagBits() {
 
 // calculates and returns the offset from this address
 int getOffset(address addrss) {
-    return 0;
+    return addrss % block_size;
 }
 
 // calculates and returns the index from this address
 int getIndex(address addrss) {
-    return 0;
+    int temp = (int) addrss / block_size;
+    return temp % set_count;
 }
 
 // calculates and returns the tag from this address
 int getTag(address addrss) {
-    return 0;
+    return addrss >> (getOffsetBits(addrss) + getIndexBits(addrss));
 }
 
 // returns the cache set associated with this address
@@ -244,4 +259,72 @@ word * cacheRead(address addrss) {
 // performs a write on this address
 void cacheWrite(address addrss, word * word) {
 
+}
+
+// sanity check, runs unit tests on helper functions
+void runTests() {
+    printf("Hello tests \n");
+
+    runBaseTests();
+
+    printf("Tests finished \n");
+}
+
+// runs tests on functions to get bits, offset, tag, and index
+void runBaseTests() {
+    printf("Running base function tests \n");
+
+    address ad = 180;
+    int expected_offsetbits = 1;
+    int expected_indexbits = 2;
+
+    int expected_offset = 0;
+    int expected_index = 2;
+    int expected_tag = 22;
+
+    // setup cache params
+    setCacheParams(2, 4, 3);
+    
+    int offsetbits = getOffsetBits();
+    int indexbits = getIndexBits();
+
+    int offset = getOffset(ad);
+    int index = getIndex(ad);
+    int tag = getTag(ad);
+
+    int passed_test = 0;
+    passed_test += assertTrue(expected_offsetbits, offsetbits, "testing getOffsetBits()..") ? 1 : 0;
+    passed_test += assertTrue(expected_indexbits, indexbits, "testing getIndexBits()..") ? 1 : 0;
+
+    passed_test += assertTrue(expected_offset, offset, "testing getOffset()..") ? 1 : 0;
+    passed_test += assertTrue(expected_index, index, "testing getindex()..") ? 1 : 0;
+    passed_test += assertTrue(expected_tag, tag, "testing getTag()..") ? 1 : 0;
+
+    printf("Passed %d/5 tests.\n");
+
+    // reset cache params
+    setCacheParams(0, 0, 0);
+}
+
+// sets cache parameters for tests
+void setCacheParams(int words_in_block, int num_sets, int blocks_in_set) {
+    block_size = words_in_block;
+    set_count = num_sets;
+    assoc = blocks_in_set;
+}
+
+// checks if the test is true, prints msg and value
+int assertTrue(int expected, int actual, char * test_msg) {
+    int test = expected == actual;
+    printf(test_msg);
+    printf("\n");
+
+    if(test == 0)
+        printf("test FAILED: expected value %d, actual value %d", expected, actual);
+    else
+        printf("test PASSED!");
+    
+    printf("\n");
+
+    return test;   
 }
