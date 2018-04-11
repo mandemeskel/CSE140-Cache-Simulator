@@ -164,3 +164,84 @@ void accessMemory(address addr, word *data, WriteEnable we)
   */
     accessDRAM(addr, (byte *)data, WORD_SIZE, we);
 }
+
+/**
+ *  Number bits of the block offset
+ **/
+int getOffsetBits() {
+    return 0;
+}
+
+/**
+ *  Number bits of the set index
+ **/
+int getIndexBits() {
+    return 0;
+}
+
+/**
+ *  Number bits of the block tag
+ **/
+int getTagBits() {
+    return 0;
+}
+
+// calculates and returns the offset from this address
+int getOffset(address addrss) {
+    return 0;
+}
+
+// calculates and returns the index from this address
+int getIndex(address addrss) {
+    return 0;
+}
+
+// calculates and returns the tag from this address
+int getTag(address addrss) {
+    return 0;
+}
+
+// returns the cache set associated with this address
+cacheSet * getCacheSet(address addrss) {
+    cacheSet * set;
+    return set;
+}
+
+// returns the cache block associated with this address
+cacheBlock * getCacheBlock(address addrss, cacheSet * set) {
+    cacheBlock * block;
+    return block;
+}
+
+// returns the word in this block that the address is saved in or null for miss
+word * getWord(address addrss, cacheBlock * block) {
+    word * data;
+    return data;
+}
+
+// handles cache misses by pulling a block from memory and adding it to the passed cache set
+int handleMiss(address addrss, cacheSet * set) {
+    return 0;
+}
+
+// returns a block that we can write data to, find block using LRU or random cache replacement, if no empty block was found in the cache set
+cacheBlock * getWriteableBlock(cacheSet * set) {
+    cacheBlock * block;
+    return block;
+}
+
+// commits block to memory at given address
+int writeBlockToMemory(address addrss, cacheBlock * block) {
+    return 0;
+}
+
+// performs a read on this address and returns the word that was found
+word * cacheRead(address addrss) {
+    word * data;
+    return data;
+}
+
+// performs a write on this address
+void cacheWrite(address addrss, word * word) {
+
+}
