@@ -319,7 +319,7 @@ void runCacheTests() {
     int passed_tests = 0;
     passed_tests += assertTrue((int)expected_set, (int)set, "testing getCacheSet()..");
     passed_tests += assertTrue((int)expected_block, (int)block, "testing getCacheBlock()..");
-    passed_tests += assertTrue((int)expected_data, (int)data, "testing getWord()..");
+    passed_tests += assertTrue(*expected_data, *data, "testing getWord()..");
 
     printf("Passed %d/3 tests.\n", passed_tests);
 
