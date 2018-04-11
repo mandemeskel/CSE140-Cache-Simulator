@@ -110,6 +110,9 @@ void runTests();
 // runs tests on functions to get bits, offset, tag, and index
 void runBaseTests();
 
+// runs tests for getCacheSet(), getCacheBlock(), and getWord()
+void runCacheTests();
+
 // sets cache parameters for tests
 void setCacheParams(int words_in_block, int num_sets, int blocks_in_set);
 
@@ -266,9 +269,46 @@ void runTests() {
     printf("Hello tests \n");
 
     runBaseTests();
+    runCacheTests();
 
     printf("Tests finished \n");
 }
+
+// TODO: add test to check that getWord() returns the correct sized word
+// runs tests for getCacheSet(), getCacheBlock(), and getWord()
+void runCacheTests() {
+    printf("Running cache function tests \n");
+
+    address ad = 180;
+    int offset = 0;
+    int index = 2;
+    int block_id = 0;
+    int tag = 22;
+
+    cacheSet * expected_set = &(cache[index]);
+    cacheBlock * expected_block = &(expected_set->block[block_id]);
+    expected_block->tag = tag; // we need to fool the test into thinking the data is in the cache
+    expected_block->data[offset] = ad;
+    byte * expected_data = &(expected_block->data[offset]);
+
+    // setup cache params
+    setCacheParams(2, 4, 3);
+    
+    cacheSet * set = getCacheSet(ad);
+    cacheBlock * block = getCacheBlock(ad, set);
+    word * data = getWord(ad, block);
+
+    int passed_tests = 0;
+    passed_tests += assertTrue((int)expected_set, (int)set, "testing getCacheSet()..");
+    passed_tests += assertTrue((int)expected_block, (int)block, "testing getCacheBlock()..");
+    passed_tests += assertTrue((int)expected_data, (int)data, "testing getWord()..");
+
+    printf("Passed %d/3 tests.\n", passed_tests);
+
+    // reset cache params
+    setCacheParams(0, 0, 0);
+}
+
 
 // runs tests on functions to get bits, offset, tag, and index
 void runBaseTests() {
