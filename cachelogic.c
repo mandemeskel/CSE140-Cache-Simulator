@@ -66,6 +66,10 @@ void init_lru(int assoc_index, int block_index)
     cache[assoc_index].block[block_index].lru.value = 0;
 }
 
+// constants
+const int BYTES_IN_WORD = 4;
+const int BITS_IN_BYTE = 8;
+
 // functions to find bits to breakdown cache addresses
 int getOffsetBits();
 int getIndexBits();
@@ -186,7 +190,7 @@ void accessMemory(address addr, word *data, WriteEnable we)
  *  Number bits of the block offset
  **/
 int getOffsetBits() {
-    return uint_log2(block_size);
+    return uint_log2(block_size / BYTES_IN_WORD);
 }
 
 /**
@@ -205,7 +209,8 @@ int getTagBits() {
 
 // calculates and returns the offset from this address
 int getOffset(address addrss) {
-    return addrss % block_size;
+    int offset = addrss % (block_size / BYTES_IN_WORD);
+    return offset * BYTES_IN_WORD;
 }
 
 // calculates and returns the index from this address
@@ -221,19 +226,32 @@ int getTag(address addrss) {
 
 // returns the cache set associated with this address
 cacheSet * getCacheSet(address addrss) {
-    cacheSet * set = NULL;
-    return set;
+    int index = getIndex(addrss);
+    return &(cache[index]);
 }
 
 // returns the cache block associated with this address
 cacheBlock * getCacheBlock(address addrss, cacheSet * set) {
-    cacheBlock * block = NULL;
-    return block;
+    int tag = getTag(addrss);
+
+    for(int index = 0; index < assoc; index++ )
+        if(set->block[index].tag == tag) return &(set->block[index]);
+
+    return NULL;
 }
 
+// TODO: call free on malloc called here
 // returns the word in this block that the address is saved in or null for miss
 word * getWord(address addrss, cacheBlock * block) {
-    word * data = NULL;
+    int offset = getOffset(addrss);
+    word * data = malloc(sizeof(word));
+    *data = 0;
+
+    // we have to construct a word which is 4 byes, from the offset which is
+    // the lowest byte to offset + 4
+    for(int index = 0; index < BYTES_IN_WORD; index++)
+        *data += block->data[offset + index] << (BITS_IN_BYTE * index);
+
     return data;
 }
 
@@ -291,7 +309,7 @@ void runCacheTests() {
     expected_block->data[offset] = ad;
     byte * expected_data = &(expected_block->data[offset]);
 
-    // setup cache params
+    // setup cache params, 2 words per block, 4 sets, 3-way assoc.
     setCacheParams(2, 4, 3);
     
     cacheSet * set = getCacheSet(ad);
@@ -322,7 +340,7 @@ void runBaseTests() {
     int expected_index = 2;
     int expected_tag = 22;
 
-    // setup cache params
+    // setup cache params, 2 words per block, 4 sets, 3-way assoc.
     setCacheParams(2, 4, 3);
     
     int offsetbits = getOffsetBits();
@@ -348,7 +366,7 @@ void runBaseTests() {
 
 // sets cache parameters for tests
 void setCacheParams(int words_in_block, int num_sets, int blocks_in_set) {
-    block_size = words_in_block;
+    block_size = words_in_block * BYTES_IN_WORD; // block size is in bytes
     set_count = num_sets;
     assoc = blocks_in_set;
 }
