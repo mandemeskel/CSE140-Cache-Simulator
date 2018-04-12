@@ -71,8 +71,8 @@ const int BYTES_IN_WORD = 4;
 const int BITS_IN_BYTE = 8;
 const int BITS_IN_WORD = BYTES_IN_WORD * BITS_IN_BYTE;
 
-// converts a word into an array of bytes
-byte * wordToByteArray(word data);
+// converts a word into an array of bytes and puts into the byte array that is passed
+void wordToByteArray(word data, byte * bytes);
 
 // converts a byte array into a word, at the given word offset
 word byteArrayToWord(byte * bytes, int word_offset);
@@ -219,9 +219,20 @@ void accessMemory(address addr, word *data, WriteEnable we)
 
 
 // converts a word into an array of bytes
-byte * wordToByteArray(word data) {
-    byte * bytes = NULL;
-    return bytes;
+void wordToByteArray(word data, byte * bytes) {
+    byte temp = 0;
+    int shift_amount = 0;
+    for(int index = 0; index < BYTES_IN_WORD; index++) {
+        
+        // get just the byte we want
+        shift_amount = BITS_IN_WORD - (BITS_IN_BYTE * index + 1);
+        temp = data << shift_amount;
+
+        // right align our byte
+        shift_amount = BITS_IN_WORD - BITS_IN_BYTE;
+        bytes[index] = temp >> shift_amount;
+
+    }
 }
 
 // converts a byte array into a word, at the given word offset
@@ -506,19 +517,21 @@ void testHandleMiss() {
     word expected_word = 88;
     byte expected_bytes[BYTES_IN_WORD];
     
-    byte temp = 0;
-    int shift_amount = 0;
-    for(int index = 0; index < BYTES_IN_WORD; index++) {
+    // byte temp = 0;
+    // int shift_amount = 0;
+    // for(int index = 0; index < BYTES_IN_WORD; index++) {
         
-        // get just the byte we want
-        shift_amount = BITS_IN_WORD - (BITS_IN_BYTE * index + 1);
-        temp = expected_word << shift_amount;
+    //     // get just the byte we want
+    //     shift_amount = BITS_IN_WORD - (BITS_IN_BYTE * index + 1);
+    //     temp = expected_word << shift_amount;
 
-        // right align our byte
-        shift_amount = BITS_IN_WORD - BITS_IN_BYTE;
-        expected_bytes[index] = temp >> shift_amount;
+    //     // right align our byte
+    //     shift_amount = BITS_IN_WORD - BITS_IN_BYTE;
+    //     expected_bytes[index] = temp >> shift_amount;
 
-    }
+    // }
+
+    wordToByteArray(expected_word, expected_bytes);
 
     // add data to memory
     accessDRAM(ad, expected_bytes, WORD_SIZE, WRITE);
