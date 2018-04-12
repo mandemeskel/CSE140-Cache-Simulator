@@ -175,7 +175,7 @@ int assertFalse(int expected, int actual, char * test_msg);
 void accessMemory(address addr, word *data, WriteEnable we)
 {
     /* Nowhere else to put tests */
-    runTests();
+    // runTests();
 
     /* Declare variables here */
 
@@ -213,14 +213,25 @@ void accessMemory(address addr, word *data, WriteEnable we)
   functions can be found in tips.h
   */
 
+    printf("address: %d \n, word: %d \n", addr, *data);
+
     /* Start adding code here */
+    if(we == WRITE) {
+
+        cacheWrite(addr, data);
+        
+    } else {
+
+        *data = *cacheRead(addr);
+
+    }
 
     /* This call to accessDRAM occurs when you modify any of the
      cache parameters. It is provided as a stop gap solution.
      At some point, ONCE YOU HAVE MORE OF YOUR CACHELOGIC IN PLACE,
      THIS LINE SHOULD BE REMOVED.
   */
-    accessDRAM(addr, (byte *)data, WORD_SIZE, we);
+    // accessDRAM(addr, (byte *)data, WORD_SIZE, we);
 }
 
 // returns the transferunit mode for accessDRAM()
@@ -437,13 +448,31 @@ int saveBlock(unsigned int block_index, cacheBlock * block) {
 
 // performs a read on this address and returns the word that was found
 word * cacheRead(address addrss) {
+    printf("cachRead(): %d \n", addrss);
+
     cacheSet * set = getCacheSet(addrss);
+    
+    printf("cachRead(), set: %d \n", set);
+
     cacheBlock * block = getCacheBlock(addrss, set);
 
-    if(block == NULL && handleMiss(addrss) != 1) return NULL;
+    printf("cachRead(), block: %d \n", block);
+
+    if(block == NULL) {
+
+        printf("handleMiss() \n");
+        if(handleMiss(addrss) != 1) return NULL;
+        printf("handleMiss() 2 \n");
     
+    }
+
+    block = getCacheBlock(addrss, set);
     word * data = getWord(addrss, block);
+    printf("getWord()\n");
+
     block->lru.value += 1;
+
+    printf("cachRead(), data: %d \n", *data);
 
     return data;
 }
