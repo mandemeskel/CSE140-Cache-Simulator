@@ -419,9 +419,9 @@ void testGetWriteableBlock() {
     
     // setup blocks
     cacheSet * set = getCacheSet(ad);
-    set->block[0].valid = VALID;
-    set->block[1].valid = INVALID;
-    set->block[2].valid = VALID;
+    set->block[0].valid = INVALID;
+    set->block[1].valid = VALID;
+    set->block[2].valid = INVALID;
     set->block[0].lru.value = block0_lru;
     set->block[1].lru.value = block1_lru;
     set->block[2].lru.value = block2_lru;
@@ -432,39 +432,39 @@ void testGetWriteableBlock() {
     passed_tests += assertTrue(
         (int) &(set->block[0]),
         (int) block,
-        "when policy is LRU, getWriteableBlock() should return valid a block with the lowest LRU"
+        "when policy is LRU, getWriteableBlock() should return a block with the lowest LRU"
     );
 
-    set->block[0].valid = INVALID;
-    set->block[1].valid = INVALID;
-    set->block[2].valid = INVALID;
+    set->block[0].valid = VALID;
+    set->block[1].valid = VALID;
+    set->block[2].valid = VALID;
     block = getWriteableBlock(set);
     passed_tests += assertTrue(
         (int) &(set->block[1]),
         (int) block,
-        "when policy is LRU and all blocks are invalid, getWriteableBlock() should return a block with the lowest LRU"
+        "when policy is LRU and all blocks are being used, getWriteableBlock() should return a block with the lowest LRU"
     );
 
     // test with random replacement policy
     policy = RANDOM;
-    set->block[0].valid = INVALID;
-    set->block[1].valid = INVALID;
-    set->block[2].valid = VALID;
+    set->block[0].valid = VALID;
+    set->block[1].valid = VALID;
+    set->block[2].valid = INVALID;
     block = getWriteableBlock(set);
     passed_tests += assertTrue(
         (int) &(set->block[2]),
         (int) block,
-        "when policy is random, getWriteableBlock() should return any block that is valid"
+        "when policy is random, getWriteableBlock() should return any block that is not being used"
     );
 
-    set->block[0].valid = INVALID;
-    set->block[1].valid = INVALID;
-    set->block[2].valid = INVALID;
+    set->block[0].valid = VALID;
+    set->block[1].valid = VALID;
+    set->block[2].valid = VALID;
     block = getWriteableBlock(set);
     passed_tests += assertFalse(
         (int) NULL,
         (int) block,
-        "when policy is random and all blocks are invalid, getWriteableBlock() should still return a block"
+        "when policy is random and all blocks are being used, getWriteableBlock() should still return a block"
     );
 
     // reset cache params
