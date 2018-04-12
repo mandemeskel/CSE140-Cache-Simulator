@@ -69,6 +69,7 @@ void init_lru(int assoc_index, int block_index)
 // constants
 const int BYTES_IN_WORD = 4;
 const int BITS_IN_BYTE = 8;
+const int BITS_IN_WORD = BYTES_IN_WORD * BITS_IN_BYTE;
 
 // functions to find bits to breakdown cache addresses
 int getOffsetBits();
@@ -93,8 +94,8 @@ cacheBlock * getCacheBlock(address, cacheSet *);
 // returns the word in this block that the address is saved in or null for miss
 word * getWord(address, cacheBlock *);
 
-// handles cache misses by pulling a block from memory and adding it to the passed cache set
-int handleMiss(address, cacheSet *);
+// handles cache misses by pulling a block from memory and adding it to the cache
+int handleMiss(address);
 
 // returns a block that we can write data to, find block using LRU or random cache replacement, if no empty block was found in the cache set
 cacheBlock * getWriteableBlock(cacheSet *);
@@ -270,8 +271,8 @@ word * getWord(address addrss, cacheBlock * block) {
     return data;
 }
 
-// handles cache misses by pulling a block from memory and adding it to the passed cache set
-int handleMiss(address addrss, cacheSet * set) {
+// handles cache misses by pulling a block from memory and adding it to the cache
+int handleMiss(address addrss) {
     return 0;
 }
 
@@ -302,11 +303,29 @@ void runTests() {
     printf("Hello tests \n");
 
     runBaseTests();
+
+    printf("\n\n");
+
     runCacheTests();
+
+    printf("\n\n");
+
     testGetWriteableBlock();
+
+    printf("\n\n");
+
     testWriteBlockToMemory();
+
+    printf("\n\n");
+
     testHandleMiss();
+
+    printf("\n\n");
+
     testCacheRead();
+
+    printf("\n\n");
+
     testCacheWrite();
 
     printf("Tests finished \n");
@@ -333,15 +352,63 @@ void testWriteBlockToMemory() {
 
 }
 
-// tests handleMiss()
+// tests handleMiss(): tests retrieval of data and replacement algos
 void testHandleMiss() {
     printf("Running handleMiss() tests \n");
     int passed_tests = 0;
 
+    address ad = 88;
+    int expected_tag = 11;
+    int expected_lru = 1;
+    word expected_word = 88;
+    byte expected_bytes[BYTES_IN_WORD];
+    
+    byte temp = 0;
+    int shift_amount = 0;
+    for(int index = 0; index < BYTES_IN_WORD; index++) {
+        
+        // get just the byte we want
+        shift_amount = BITS_IN_WORD - (BITS_IN_BYTE * index + 1);
+        temp = expected_word << shift_amount;
 
+        // right align our byte
+        shift_amount = BITS_IN_WORD - BITS_IN_BYTE;
+        expected_bytes[index] = temp >> shift_amount;
 
-    printf("Passed %d/100000 tests.\n", passed_tests);
+    }
 
+    // add data to memory
+    accessDRAM(ad, expected_bytes, WORD_SIZE, WRITE);
+
+    // setup cache params, 2 words per block, 4 sets, 3-way assoc.
+    setCacheParams(2, 4, 3);
+
+    // should add missing 
+    cacheSet * set = getCacheSet(ad);
+    int success = handleMiss(ad);
+
+    cacheBlock * block = getCacheBlock(ad, set);
+    unsigned int tag = 314567;
+    unsigned int lru_value = 314567;
+    byte * byte = NULL;
+    word word_value = 0;
+
+    if(block != NULL) {
+        tag = block->tag;
+        lru_value = block->lru.value;
+        byte = &(block->data[getOffset(ad)]);
+        word_value = *(getWord(ad, block));
+    }
+
+    passed_tests += assertTrue(1, success, "handleMiss() should return True i.e 1 if succesful");
+    passed_tests += assertTrue(expected_tag, tag, "handleMiss() should update the block tag");
+    passed_tests += assertTrue(expected_lru, lru_value, "handleMiss() should update the block lru");
+    passed_tests += assertTrue(expected_word, word_value, "handleMiss() should save the correct data to the cache");
+
+    // reset cache params
+    setCacheParams(0, 0, 0);
+
+    printf("Passed %d/4 tests.\n", passed_tests);
 }
 
 // tests cacheRead()
