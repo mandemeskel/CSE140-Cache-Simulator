@@ -429,7 +429,14 @@ int writeBlockToMemory(address addrss, cacheBlock * block) {
 
 // performs a read on this address and returns the word that was found
 word * cacheRead(address addrss) {
-    word * data = NULL;
+    cacheSet * set = getCacheSet(addrss);
+    cacheBlock * block = getCacheBlock(addrss, set);
+
+    if(block == NULL && handleMiss(addrss) != 1) return NULL;
+    
+    word * data = getWord(addrss, block);
+    block->lru.value += 1;
+
     return data;
 }
 
