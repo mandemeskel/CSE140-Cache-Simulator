@@ -238,6 +238,16 @@ void wordToByteArray(word data, byte * bytes) {
 // converts a byte array into a word, at the given word offset
 word byteArrayToWord(byte * bytes, int word_offset) {
     word data = 0;
+    int offset = word_offset * BYTES_IN_WORD;
+    
+    // we have to construct a word which is 4 byes, from the offset which is
+    // the lowest byte of the word
+    unsigned int temp = 0;
+    for(int index = 0; index < BYTES_IN_WORD; index++) {
+        temp = bytes[offset + index]; // prevents data loss from left shifts 
+        data += temp << (BITS_IN_BYTE * index);
+    }
+    
     return data;
 }
 
@@ -308,15 +318,9 @@ cacheBlock * getCacheBlock(address addrss, cacheSet * set) {
 // TODO: call free on malloc called here
 // returns the word in this block that the address is saved in or null for miss
 word * getWord(address addrss, cacheBlock * block) {
-    int offset = getOffsetInBytes(addrss);
+    int offset = getOffsetInWords(addrss);
     word * data = malloc(sizeof(word));
-    *data = 0;
-
-    // we have to construct a word which is 4 byes, from the offset which is
-    // the lowest byte to offset + 4
-    for(int index = 0; index < BYTES_IN_WORD; index++)
-        *data += block->data[offset + index] << (BITS_IN_BYTE * index);
-
+    *data = byteArrayToWord(block->data, offset);
     return data;
 }
 
