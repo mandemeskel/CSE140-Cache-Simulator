@@ -450,7 +450,46 @@ word * cacheRead(address addrss) {
 
 // performs a write on this address
 void cacheWrite(address addrss, word * word) {
+    cacheSet * set = getCacheSet(addrss);
+    cacheBlock * block = getCacheBlock(addrss, set);
+    int offset = getOffsetInBytes(addrss);
 
+    // addrss is not in the cache, add it
+    if(block == NULL) {
+
+        cacheBlock * block = getWriteableBlock(set);
+
+        // we need to replace this block, but it should be saved first
+        if(block->valid == VALID && block->dirty == DIRTY) {
+            int status = saveBlock(getIndex(addrss), block);
+
+            if(status != 1) {
+                printf("cacheWrite(), failed to persist block being replaced\n");
+                return;
+            }
+        }
+
+        block->tag = getTag(addrss);
+    }
+
+    byte bytes[BYTES_IN_WORD];
+    wordToByteArray(*word, bytes);
+
+    for(int index = 0; index < BYTES_IN_WORD; index++)
+        block->data[offset + index] = bytes[index];
+    
+    // write through, persist the cache changes to main memory
+    if(memory_sync_policy == WRITE_THROUGH) {
+
+        writeBlockToMemory(addrss, block);
+
+    } else {
+
+        block->dirty = DIRTY;
+
+    }
+
+    block->lru.value += 1;
 }
 
 // sanity check, runs unit tests on helper functions
