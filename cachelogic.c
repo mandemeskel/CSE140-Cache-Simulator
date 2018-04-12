@@ -464,6 +464,7 @@ word * cacheRead(address addrss) {
     word * data = getWord(addrss, block);
 
     block->lru.value += 1;
+    block->valid = VALID;
 
     return data;
 }
@@ -510,6 +511,7 @@ void cacheWrite(address addrss, word * word) {
     }
 
     block->lru.value += 1;
+    block->valid = VALID;
 }
 
 // sanity check, runs unit tests on helper functions
