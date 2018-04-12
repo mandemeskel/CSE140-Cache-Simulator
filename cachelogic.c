@@ -136,8 +136,11 @@ void testCacheWrite();
 // sets cache parameters for tests
 void setCacheParams(int words_in_block, int num_sets, int blocks_in_set);
 
-// checks if the test is true, prints msg and value
+// checks if the passed values are equal, prints msg and value
 int assertTrue(int expected, int actual, char * test_msg);
+
+// checks if the passed values are NOT equal, prints msg and value
+int assertFalse(int expected, int actual, char * test_msg);
 
 /*
   This is the primary function you are filling out,
@@ -335,10 +338,70 @@ void runTests() {
 void testGetWriteableBlock() {
     printf("Running getWriteableBlock() tests \n");
     int passed_tests = 0;
+    int blocks_in_set = 3;
 
+    // setup cache params, 2 words per block, 4 sets, 3-way assoc.
+    setCacheParams(2, 4, blocks_in_set);
 
+    unsigned int block0_lru = 34;
+    unsigned int block1_lru = 12;
+    unsigned int block2_lru = 41;
+    address ad = 90;
+    
+    // setup blocks
+    cacheSet * set = getCacheSet(ad);
+    set->block[0].valid = VALID;
+    set->block[1].valid = INVALID;
+    set->block[2].valid = VALID;
+    set->block[0].lru.value = block0_lru;
+    set->block[1].lru.value = block1_lru;
+    set->block[2].lru.value = block2_lru;
 
-    printf("Passed %d/100000 tests.\n", passed_tests);
+    // test with LRU replacement policy
+    policy = LRU;
+    cacheBlock * block = getWriteableBlock(set);
+    passed_tests += assertTrue(
+        (int) &(set->block[0]),
+        (int) block,
+        "when policy is LRU, getWriteableBlock() should return valid a block with the lowest LRU"
+    );
+
+    set->block[0].valid = INVALID;
+    set->block[1].valid = INVALID;
+    set->block[2].valid = INVALID;
+    block = getWriteableBlock(set);
+    passed_tests += assertTrue(
+        (int) &(set->block[1]),
+        (int) block,
+        "when policy is LRU and all blocks are invalid, getWriteableBlock() should return a block with the lowest LRU"
+    );
+
+    // test with random replacement policy
+    policy = RANDOM;
+    set->block[0].valid = INVALID;
+    set->block[1].valid = INVALID;
+    set->block[2].valid = VALID;
+    block = getWriteableBlock(set);
+    passed_tests += assertTrue(
+        (int) &(set->block[2]),
+        (int) block,
+        "when policy is random, getWriteableBlock() should return any block that is valid"
+    );
+
+    set->block[0].valid = INVALID;
+    set->block[1].valid = INVALID;
+    set->block[2].valid = INVALID;
+    block = getWriteableBlock(set);
+    passed_tests += assertFalse(
+        (int) NULL,
+        (int) block,
+        "when policy is random and all blocks are invalid, getWriteableBlock() should still return a block"
+    );
+
+    // reset cache params
+    setCacheParams(0, 0, 0);
+
+    printf("Passed %d/4 tests.\n", passed_tests);
 }
 
 // tests writeBlockToMemory()
@@ -512,7 +575,7 @@ void setCacheParams(int words_in_block, int num_sets, int blocks_in_set) {
     assoc = blocks_in_set;
 }
 
-// checks if the test is true, prints msg and value
+// checks if the passed values are equal, prints msg and value
 int assertTrue(int expected, int actual, char * test_msg) {
     int test = expected == actual;
     printf("%s", test_msg);
@@ -520,6 +583,22 @@ int assertTrue(int expected, int actual, char * test_msg) {
 
     if(test == 0)
         printf("test FAILED: expected value %d, actual value %d", expected, actual);
+    else
+        printf("test PASSED!");
+    
+    printf("\n");
+
+    return test;   
+}
+
+// checks if the passed values are NOT equal, prints msg and value
+int assertFalse(int expected, int actual, char * test_msg) {
+    int test = expected != actual;
+    printf("%s", test_msg);
+    printf("\n");
+
+    if(test == 0)
+        printf("test FAILED: expected value %d and actual value %d are equal", expected, actual);
     else
         printf("test PASSED!");
     
