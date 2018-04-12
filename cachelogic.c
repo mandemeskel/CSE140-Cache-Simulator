@@ -516,20 +516,6 @@ void testHandleMiss() {
     int expected_lru = 1;
     word expected_word = 88;
     byte expected_bytes[BYTES_IN_WORD];
-    
-    // byte temp = 0;
-    // int shift_amount = 0;
-    // for(int index = 0; index < BYTES_IN_WORD; index++) {
-        
-    //     // get just the byte we want
-    //     shift_amount = BITS_IN_WORD - (BITS_IN_BYTE * index + 1);
-    //     temp = expected_word << shift_amount;
-
-    //     // right align our byte
-    //     shift_amount = BITS_IN_WORD - BITS_IN_BYTE;
-    //     expected_bytes[index] = temp >> shift_amount;
-
-    // }
 
     wordToByteArray(expected_word, expected_bytes);
 
