@@ -245,17 +245,18 @@ TransferUnit getTransferUnit() {
 
 // converts a word into an array of bytes
 void wordToByteArray(word data, byte * bytes) {
-    byte temp = 0;
+    unsigned int temp = 0;
     int shift_amount = 0;
+    
     for(int index = 0; index < BYTES_IN_WORD; index++) {
         
         // get just the byte we want
-        shift_amount = BITS_IN_WORD - (BITS_IN_BYTE * index + 1);
+        shift_amount = BITS_IN_WORD - (BITS_IN_BYTE * (index + 1));
         temp = data << shift_amount;
 
         // right align our byte
         shift_amount = BITS_IN_WORD - BITS_IN_BYTE;
-        bytes[index] = temp >> shift_amount;
+        bytes[index] = temp >> shift_amount;      
 
     }
 }
