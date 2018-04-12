@@ -213,8 +213,6 @@ void accessMemory(address addr, word *data, WriteEnable we)
   functions can be found in tips.h
   */
 
-    printf("address: %d \n, word: %d \n", addr, *data);
-
     /* Start adding code here */
     if(we == WRITE) {
 
@@ -448,31 +446,24 @@ int saveBlock(unsigned int block_index, cacheBlock * block) {
 
 // performs a read on this address and returns the word that was found
 word * cacheRead(address addrss) {
-    printf("cachRead(): %d \n", addrss);
-
     cacheSet * set = getCacheSet(addrss);
-    
-    printf("cachRead(), set: %d \n", set);
-
     cacheBlock * block = getCacheBlock(addrss, set);
-
-    printf("cachRead(), block: %d \n", block);
 
     if(block == NULL) {
 
-        printf("handleMiss() \n");
-        if(handleMiss(addrss) != 1) return NULL;
-        printf("handleMiss() 2 \n");
+        if(handleMiss(addrss) != 1) {
+            
+            printf("cacheRead(), failed to persist block being replaced\n");
+            return NULL;
     
+        }
+
     }
 
     block = getCacheBlock(addrss, set);
     word * data = getWord(addrss, block);
-    printf("getWord()\n");
 
     block->lru.value += 1;
-
-    printf("cachRead(), data: %d \n", *data);
 
     return data;
 }
