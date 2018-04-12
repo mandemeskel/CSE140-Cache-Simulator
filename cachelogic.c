@@ -336,8 +336,22 @@ int handleMiss(address addrss) {
 
 // returns a block that we can write data to, find block using LRU or random cache replacement, if no empty block was found in the cache set
 cacheBlock * getWriteableBlock(cacheSet * set) {
-    cacheBlock * block = NULL;
-    return block;
+    int lru_block = 0;
+
+    // look for an empty block
+    for(int index = 0; index < assoc; index++) {
+
+        if(set->block[index].valid == INVALID) 
+            return &(set->block[index]);
+
+        if(set->block[index].lru.value < set->block[lru_block].lru.value)
+            lru_block = index;
+    }
+
+    if(policy == LRU) return &(set->block[lru_block]);
+    
+    int random = randomint(assoc);
+    return &(set->block[random]);
 }
 
 // commits block to memory at given address
