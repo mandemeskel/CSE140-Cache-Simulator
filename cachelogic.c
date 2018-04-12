@@ -356,7 +356,33 @@ cacheBlock * getWriteableBlock(cacheSet * set) {
 
 // commits block to memory at given address
 int writeBlockToMemory(address addrss, cacheBlock * block) {
-    return 0;
+    TransferUnit transferUnit;
+
+    // figure out the transferunit
+    int words_in_block = block_size / BYTES_IN_WORD;
+    switch(words_in_block) {
+        case 2:
+            transferUnit = DOUBLEWORD_SIZE;
+        break;
+        case 3:
+            transferUnit = QUADWORD_SIZE;
+        break;
+        case 4:
+            transferUnit = QUADWORD_SIZE;
+        break;
+        case 5:
+            transferUnit = OCTWORD_SIZE;
+        break;
+    }
+
+    int status = accessDRAM(addrss, block->data, transferUnit, WRITE);
+
+    if(status == 0) {
+        block->dirty = VIRGIN;
+        return 1;
+    }
+
+    return -1;
 }
 
 // performs a read on this address and returns the word that was found
@@ -496,7 +522,15 @@ void testWriteBlockToMemory() {
 
     // save and retrieve block
     int success = writeBlockToMemory(ad, block);
-    accessDRAM(ad, data, DOUBLEWORD_SIZE, READ);
+    // int waiter = 0;
+    // while(waiter < 100000) waiter += 100;
+    int status = accessDRAM(ad, data, DOUBLEWORD_SIZE, READ);
+
+    if(status == 0) {
+        
+        printf("FAILED TO READ accessDRAM()\n");
+
+    }
 
     word first_word = byteArrayToWord(data, 0);
     word second_word = byteArrayToWord(data, 1);
