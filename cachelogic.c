@@ -71,13 +71,25 @@ const int BYTES_IN_WORD = 4;
 const int BITS_IN_BYTE = 8;
 const int BITS_IN_WORD = BYTES_IN_WORD * BITS_IN_BYTE;
 
+// converts a word into an array of bytes
+byte * wordToByteArray(word data);
+
+// converts a byte array into a word, at the given word offset
+word byteArrayToWord(byte * bytes, int word_offset);
+
+// inserts a word into a block at the passed word offset
+void insertWordIntoBlock(cacheBlock * dst, word data, int word_offset);
+
 // functions to find bits to breakdown cache addresses
 int getOffsetBits();
 int getIndexBits();
 int getTagBits();
 
-// calculates and returns the offset from this address
-int getOffset(address);
+// calculates and returns the offset from this address in number of words
+int getOffsetInWords(address);
+
+// calculates and returns the offset from this address in number of bytes
+int getOffsetInBytes(address);
 
 // calculates and returns the index from this address
 int getIndex(address);
@@ -205,6 +217,24 @@ void accessMemory(address addr, word *data, WriteEnable we)
     accessDRAM(addr, (byte *)data, WORD_SIZE, we);
 }
 
+
+// converts a word into an array of bytes
+byte * wordToByteArray(word data) {
+    byte * bytes = NULL;
+    return bytes;
+}
+
+// converts a byte array into a word, at the given word offset
+word byteArrayToWord(byte * bytes, int word_offset) {
+    word data = 0;
+    return data;
+}
+
+// inserts a word into a block at the passed word offset
+void insertWordIntoBlock(cacheBlock * dst, word data, int word_offset) {
+
+}
+
 /**
  *  Number bits of the block offset
  **/
@@ -226,10 +256,15 @@ int getTagBits() {
     return 0;
 }
 
-// calculates and returns the offset from this address
-int getOffset(address addrss) {
+// calculates and returns the offset from this address in number of words
+int getOffsetInWords(address addrss) {
     int offset = addrss % (block_size / BYTES_IN_WORD);
-    return offset * BYTES_IN_WORD;
+    return offset;
+}
+
+// calculates and returns the offset from this address in number of bytes
+int getOffsetInBytes(address addrss) {
+    return getOffsetInWords(addrss) * BYTES_IN_WORD;
 }
 
 // calculates and returns the index from this address
@@ -262,7 +297,7 @@ cacheBlock * getCacheBlock(address addrss, cacheSet * set) {
 // TODO: call free on malloc called here
 // returns the word in this block that the address is saved in or null for miss
 word * getWord(address addrss, cacheBlock * block) {
-    int offset = getOffset(addrss);
+    int offset = getOffsetInBytes(addrss);
     word * data = malloc(sizeof(word));
     *data = 0;
 
@@ -408,10 +443,55 @@ void testGetWriteableBlock() {
 void testWriteBlockToMemory() {
     printf("Running writeBlockToMemory() tests \n");
     int passed_tests = 0;
+    int words_in_block = 2;
+    int block_index = 0;
+    address ad = 10;
+    word expected_first_word = 10;
+    word expected_second_word = 11;
+    byte data[words_in_block * BYTES_IN_WORD];
 
+    // setup cache params, 2 words per block, 4 sets, 3-way assoc.
+    setCacheParams(words_in_block, 4, 3);
 
+    // setup block
+    cacheSet * set = getCacheSet(ad);
+    cacheBlock * block = &(set->block[block_index]);
+    block->dirty = DIRTY;
+    insertWordIntoBlock(block, expected_first_word, 0);
+    insertWordIntoBlock(block, expected_second_word, 1);
 
-    printf("Passed %d/100000 tests.\n", passed_tests);
+    // save and retrieve block
+    int success = writeBlockToMemory(ad, block);
+    accessDRAM(ad, data, DOUBLEWORD_SIZE, READ);
+
+    word first_word = byteArrayToWord(data, 0);
+    word second_word = byteArrayToWord(data, 1);
+
+    passed_tests += assertTrue(
+            1, 
+            success, 
+            "writeBlockToMemory() should return True i.e 1 if succesful"
+        );
+    passed_tests += assertTrue(
+            expected_first_word, 
+            first_word, 
+            "writeBlockToMemory() should save all the words in the block, testing presence first word"
+        );
+    passed_tests += assertTrue(
+            expected_second_word, 
+            second_word, 
+            "writeBlockToMemory() should save all the words in the block, testing presence second word"
+        );
+    passed_tests += assertTrue(
+            VIRGIN, 
+            block->dirty, 
+            "writeBlockToMemory() should set the block to VIRGIN"
+        );
+
+    // reset cache params
+    setCacheParams(0, 0, 0);
+
+    printf("Passed %d/4 tests.\n", passed_tests);
 
 }
 
@@ -459,7 +539,7 @@ void testHandleMiss() {
     if(block != NULL) {
         tag = block->tag;
         lru_value = block->lru.value;
-        byte = &(block->data[getOffset(ad)]);
+        byte = &(block->data[getOffsetInBytes(ad)]);
         word_value = *(getWord(ad, block));
     }
 
@@ -550,7 +630,7 @@ void runBaseTests() {
     int offsetbits = getOffsetBits();
     int indexbits = getIndexBits();
 
-    int offset = getOffset(ad);
+    int offset = getOffsetInBytes(ad);
     int index = getIndex(ad);
     int tag = getTag(ad);
 
@@ -558,7 +638,7 @@ void runBaseTests() {
     passed_tests += assertTrue(expected_offsetbits, offsetbits, "testing getOffsetBits()..");
     passed_tests += assertTrue(expected_indexbits, indexbits, "testing getIndexBits()..");
 
-    passed_tests += assertTrue(expected_offset, offset, "testing getOffset()..");
+    passed_tests += assertTrue(expected_offset, offset, "testing getOffsetInBytes()..");
     passed_tests += assertTrue(expected_index, index, "testing getindex()..");
     passed_tests += assertTrue(expected_tag, tag, "testing getTag()..");
 
