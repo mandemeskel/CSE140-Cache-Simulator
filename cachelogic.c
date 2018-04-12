@@ -71,6 +71,9 @@ const int BYTES_IN_WORD = 4;
 const int BITS_IN_BYTE = 8;
 const int BITS_IN_WORD = BYTES_IN_WORD * BITS_IN_BYTE;
 
+// returns the transferunit mode for accessDRAM()
+TransferUnit getTransferUnit();
+
 // converts a word into an array of bytes and puts into the byte array that is passed
 void wordToByteArray(word data, byte * bytes);
 
@@ -217,6 +220,28 @@ void accessMemory(address addr, word *data, WriteEnable we)
     accessDRAM(addr, (byte *)data, WORD_SIZE, we);
 }
 
+// returns the transferunit mode for accessDRAM()
+TransferUnit getTransferUnit() {
+    TransferUnit transferUnit;
+    int words_in_block = block_size / BYTES_IN_WORD;
+
+    switch(words_in_block) {
+        case 2:
+            transferUnit = DOUBLEWORD_SIZE;
+        break;
+        case 3:
+            transferUnit = QUADWORD_SIZE;
+        break;
+        case 4:
+            transferUnit = QUADWORD_SIZE;
+        break;
+        case 5:
+            transferUnit = OCTWORD_SIZE;
+        break;
+    }
+
+    return transferUnit;
+}
 
 // converts a word into an array of bytes
 void wordToByteArray(word data, byte * bytes) {
@@ -331,7 +356,38 @@ word * getWord(address addrss, cacheBlock * block) {
 
 // handles cache misses by pulling a block from memory and adding it to the cache
 int handleMiss(address addrss) {
-    return 0;
+    cacheSet * set = getCacheSet(addrss);
+    cacheBlock * block = getWriteableBlock(set);
+    TransferUnit transferUnit = getTransferUnit();
+
+    // calculate address and save block to memory
+    if(block->valid == VALID && block->dirty == DIRTY) {
+
+        unsigned int index = getIndex(addrss);
+        unsigned int tag = block->tag;
+        unsigned int offset = 0;
+        address old_adrs = offset;
+        old_adrs += index << getOffsetBits();
+        old_adrs += tag << (getIndexBits() + getOffsetBits());
+        int writeStatus = accessDRAM(old_adrs, block->data, transferUnit, WRITE);
+
+        if(writeStatus != 0) {
+            printf("handleMiss() failed to persist block being replaced. \n");
+            return -1;
+        }
+
+    }
+
+    int status = accessDRAM(addrss, block->data, transferUnit, READ);
+    if(status == 0) {
+
+        block->dirty = VIRGIN;
+        block->lru.value = 0;
+        return 1;
+
+    }
+
+    return -1;
 }
 
 // returns a block that we can write data to, find block using LRU or random cache replacement, if no empty block was found in the cache set
@@ -356,24 +412,7 @@ cacheBlock * getWriteableBlock(cacheSet * set) {
 
 // commits block to memory at given address
 int writeBlockToMemory(address addrss, cacheBlock * block) {
-    TransferUnit transferUnit;
-
-    // figure out the transferunit
-    int words_in_block = block_size / BYTES_IN_WORD;
-    switch(words_in_block) {
-        case 2:
-            transferUnit = DOUBLEWORD_SIZE;
-        break;
-        case 3:
-            transferUnit = QUADWORD_SIZE;
-        break;
-        case 4:
-            transferUnit = QUADWORD_SIZE;
-        break;
-        case 5:
-            transferUnit = OCTWORD_SIZE;
-        break;
-    }
+    TransferUnit transferUnit = getTransferUnit();
 
     int status = accessDRAM(addrss, block->data, transferUnit, WRITE);
 
