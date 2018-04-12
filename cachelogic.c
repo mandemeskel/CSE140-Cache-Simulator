@@ -118,6 +118,9 @@ cacheBlock * getWriteableBlock(cacheSet *);
 // commits block to memory at given address
 int writeBlockToMemory(address, cacheBlock *);
 
+// calculates the address where this block is supposed to be saved and saves it there
+int saveBlock(unsigned int block_index, cacheBlock * block);
+
 // performs a read on this address and returns the word that was found
 word * cacheRead(address);
 
@@ -365,13 +368,7 @@ int handleMiss(address addrss) {
     if(block->valid == VALID && block->dirty == DIRTY) {
 
         unsigned int index = getIndex(addrss);
-        unsigned int tag = block->tag;
-        unsigned int offset = 0;
-        address old_adrs = offset;
-        old_adrs += index << getOffsetBits();
-        old_adrs += tag << (getIndexBits() + getOffsetBits());
-        // int writeStatus = accessDRAM(old_adrs, block->data, transferUnit, WRITE);
-        int writeStatus = writeBlockToMemory(old_adrs, block);
+        int writeStatus = saveBlock(index, block);
 
         if(writeStatus != 0) {
             printf("handleMiss() failed to persist block being replaced. \n");
@@ -425,6 +422,17 @@ int writeBlockToMemory(address addrss, cacheBlock * block) {
     }
 
     return -1;
+}
+
+// calculates the address where this block is supposed to be saved and saves it there
+int saveBlock(unsigned int block_index, cacheBlock * block) {
+    unsigned int index = block_index;
+    unsigned int tag = block->tag;
+    unsigned int offset = 0;
+    address old_adrs = offset;
+    old_adrs += index << getOffsetBits();
+    old_adrs += tag << (getIndexBits() + getOffsetBits());
+    return writeBlockToMemory(old_adrs, block);
 }
 
 // performs a read on this address and returns the word that was found
