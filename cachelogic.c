@@ -369,7 +369,8 @@ int handleMiss(address addrss) {
         address old_adrs = offset;
         old_adrs += index << getOffsetBits();
         old_adrs += tag << (getIndexBits() + getOffsetBits());
-        int writeStatus = accessDRAM(old_adrs, block->data, transferUnit, WRITE);
+        // int writeStatus = accessDRAM(old_adrs, block->data, transferUnit, WRITE);
+        int writeStatus = writeBlockToMemory(old_adrs, block);
 
         if(writeStatus != 0) {
             printf("handleMiss() failed to persist block being replaced. \n");
@@ -383,6 +384,7 @@ int handleMiss(address addrss) {
 
         block->dirty = VIRGIN;
         block->lru.value = 0;
+        block->tag = getTag(addrss);
         return 1;
 
     }
@@ -609,7 +611,7 @@ void testHandleMiss() {
 
     address ad = 88;
     int expected_tag = 11;
-    int expected_lru = 1;
+    int expected_lru = 0;
     word expected_word = 88;
     byte expected_bytes[BYTES_IN_WORD];
 
@@ -640,7 +642,7 @@ void testHandleMiss() {
 
     passed_tests += assertTrue(1, success, "handleMiss() should return True i.e 1 if succesful");
     passed_tests += assertTrue(expected_tag, tag, "handleMiss() should update the block tag");
-    passed_tests += assertTrue(expected_lru, lru_value, "handleMiss() should update the block lru");
+    passed_tests += assertTrue(expected_lru, lru_value, "handleMiss() should reset the block's lru");
     passed_tests += assertTrue(expected_word, word_value, "handleMiss() should save the correct data to the cache");
 
     // reset cache params
