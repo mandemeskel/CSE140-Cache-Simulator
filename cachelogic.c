@@ -253,7 +253,12 @@ word byteArrayToWord(byte * bytes, int word_offset) {
 
 // inserts a word into a block at the passed word offset
 void insertWordIntoBlock(cacheBlock * dst, word data, int word_offset) {
-
+    int offset = word_offset * BYTES_IN_WORD;
+    byte bytes[BYTES_IN_WORD];
+    
+    wordToByteArray(data, bytes);
+    for(int index = 0; index < BYTES_IN_WORD; index++)
+        dst->data[offset + index] = bytes[index];
 }
 
 /**
